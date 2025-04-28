@@ -8,7 +8,7 @@ class InferlessPythonModel:
         maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
         manager = OllamaManager()
         manager.start_server()
-        model_id = 'llama3.2'
+        model_id = 'llama3.3:70b'
         models = manager.list_models()
         print(f"Available models: {models}")
         
