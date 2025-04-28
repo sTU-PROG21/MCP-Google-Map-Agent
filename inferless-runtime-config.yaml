@@ -1,0 +1,10 @@
+build:
+  cuda_version: "12.1.1"
+  python_packages:
+    - "praisonaiagents==0.0.76"
+    - "mcp==1.6.0"
+    - "requests==2.32.3"
+  run:
+    - "pip install litellm==1.67.2"
+    - "curl -L https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz"
+    - "tar -C /usr -xzf ollama-linux-amd64.tgz"
