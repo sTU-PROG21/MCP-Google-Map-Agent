@@ -1,283 +1,0 @@
-Step 1/6 : FROM nvcr.io/nvidia/tritonserver:23.06-py3
- ---> 5b42518a70db
-Step 2/6 : RUN pip install --upgrade pip
- ---> Using cache
- ---> 9f0e6eaad977
-Step 3/6 : RUN pip install langchain-mcp-adapters==0.0.9 mcp==1.6.0 requests==2.32.3 langchain-openai==0.3.14 langgraph==0.3.34
- ---> Using cache
- ---> 51644be4993a
-Step 4/6 : COPY . /models/inferless-model/1/
- ---> 47d59facc8cd
-Step 5/6 : COPY config.pbtxt /models/inferless-model/
- ---> 9578cf2576ef
-Step 6/6 : RUN pip install litellm==1.67.2 && curl -L https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz && tar -C /usr -xzf ollama-linux-amd64.tgz && curl -sL https://deb.nodesource.com/setup_lts.x | bash - && apt install nodejs -y
- ---> Running in d7e2e4d7f7fa
-Collecting litellm==1.67.2
-  Downloading litellm-1.67.2-py3-none-any.whl.metadata (36 kB)
-Collecting aiohttp (from litellm==1.67.2)
-  Downloading aiohttp-3.11.18-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.7 kB)
-Requirement already satisfied: click in /usr/local/lib/python3.10/dist-packages (from litellm==1.67.2) (8.1.8)
-Requirement already satisfied: httpx>=0.23.0 in /usr/local/lib/python3.10/dist-packages (from litellm==1.67.2) (0.28.1)
-Collecting importlib-metadata>=6.8.0 (from litellm==1.67.2)
-  Downloading importlib_metadata-8.7.0-py3-none-any.whl.metadata (4.8 kB)
-Collecting jinja2<4.0.0,>=3.1.2 (from litellm==1.67.2)
-  Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
-Collecting jsonschema<5.0.0,>=4.22.0 (from litellm==1.67.2)
-  Downloading jsonschema-4.23.0-py3-none-any.whl.metadata (7.9 kB)
-Requirement already satisfied: openai>=1.68.2 in /usr/local/lib/python3.10/dist-packages (from litellm==1.67.2) (1.76.0)
-Requirement already satisfied: pydantic<3.0.0,>=2.0.0 in /usr/local/lib/python3.10/dist-packages (from litellm==1.67.2) (2.11.3)
-Requirement already satisfied: python-dotenv>=0.2.0 in /usr/local/lib/python3.10/dist-packages (from litellm==1.67.2) (1.1.0)
-Requirement already satisfied: tiktoken>=0.7.0 in /usr/local/lib/python3.10/dist-packages (from litellm==1.67.2) (0.9.0)
-Collecting tokenizers (from litellm==1.67.2)
-  Downloading tokenizers-0.21.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.8 kB)
-Collecting MarkupSafe>=2.0 (from jinja2<4.0.0,>=3.1.2->litellm==1.67.2)
-  Downloading MarkupSafe-3.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.0 kB)
-Collecting attrs>=22.2.0 (from jsonschema<5.0.0,>=4.22.0->litellm==1.67.2)
-  Downloading attrs-25.3.0-py3-none-any.whl.metadata (10 kB)
-Collecting jsonschema-specifications>=2023.03.6 (from jsonschema<5.0.0,>=4.22.0->litellm==1.67.2)
-  Downloading jsonschema_specifications-2025.4.1-py3-none-any.whl.metadata (2.9 kB)
-Collecting referencing>=0.28.4 (from jsonschema<5.0.0,>=4.22.0->litellm==1.67.2)
-  Downloading referencing-0.36.2-py3-none-any.whl.metadata (2.8 kB)
-Collecting rpds-py>=0.7.1 (from jsonschema<5.0.0,>=4.22.0->litellm==1.67.2)
-  Downloading rpds_py-0.24.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.1 kB)
-Requirement already satisfied: annotated-types>=0.6.0 in /usr/local/lib/python3.10/dist-packages (from pydantic<3.0.0,>=2.0.0->litellm==1.67.2) (0.7.0)
-Requirement already satisfied: pydantic-core==2.33.1 in /usr/local/lib/python3.10/dist-packages (from pydantic<3.0.0,>=2.0.0->litellm==1.67.2) (2.33.1)
-Requirement already satisfied: typing-extensions>=4.12.2 in /usr/local/lib/python3.10/dist-packages (from pydantic<3.0.0,>=2.0.0->litellm==1.67.2) (4.13.2)
-Requirement already satisfied: typing-inspection>=0.4.0 in /usr/local/lib/python3.10/dist-packages (from pydantic<3.0.0,>=2.0.0->litellm==1.67.2) (0.4.0)
-Requirement already satisfied: anyio in /usr/local/lib/python3.10/dist-packages (from httpx>=0.23.0->litellm==1.67.2) (4.9.0)
-Requirement already satisfied: certifi in /usr/local/lib/python3.10/dist-packages (from httpx>=0.23.0->litellm==1.67.2) (2025.4.26)
-Requirement already satisfied: httpcore==1.* in /usr/local/lib/python3.10/dist-packages (from httpx>=0.23.0->litellm==1.67.2) (1.0.9)
-Requirement already satisfied: idna in /usr/local/lib/python3.10/dist-packages (from httpx>=0.23.0->litellm==1.67.2) (3.10)
-Requirement already satisfied: h11>=0.16 in /usr/local/lib/python3.10/dist-packages (from httpcore==1.*->httpx>=0.23.0->litellm==1.67.2) (0.16.0)
-Collecting zipp>=3.20 (from importlib-metadata>=6.8.0->litellm==1.67.2)
-  Downloading zipp-3.21.0-py3-none-any.whl.metadata (3.7 kB)
-Requirement already satisfied: distro<2,>=1.7.0 in /usr/lib/python3/dist-packages (from openai>=1.68.2->litellm==1.67.2) (1.7.0)
-Requirement already satisfied: jiter<1,>=0.4.0 in /usr/local/lib/python3.10/dist-packages (from openai>=1.68.2->litellm==1.67.2) (0.9.0)
-Requirement already satisfied: sniffio in /usr/local/lib/python3.10/dist-packages (from openai>=1.68.2->litellm==1.67.2) (1.3.1)
-Requirement already satisfied: tqdm>4 in /usr/local/lib/python3.10/dist-packages (from openai>=1.68.2->litellm==1.67.2) (4.67.1)
-Requirement already satisfied: exceptiongroup>=1.0.2 in /usr/local/lib/python3.10/dist-packages (from anyio->httpx>=0.23.0->litellm==1.67.2) (1.2.2)
-Requirement already satisfied: regex>=2022.1.18 in /usr/local/lib/python3.10/dist-packages (from tiktoken>=0.7.0->litellm==1.67.2) (2024.11.6)
-Requirement already satisfied: requests>=2.26.0 in /usr/local/lib/python3.10/dist-packages (from tiktoken>=0.7.0->litellm==1.67.2) (2.32.3)
-Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/dist-packages (from requests>=2.26.0->tiktoken>=0.7.0->litellm==1.67.2) (3.4.1)
-Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests>=2.26.0->tiktoken>=0.7.0->litellm==1.67.2) (2.4.0)
-Collecting aiohappyeyeballs>=2.3.0 (from aiohttp->litellm==1.67.2)
-  Downloading aiohappyeyeballs-2.6.1-py3-none-any.whl.metadata (5.9 kB)
-Collecting aiosignal>=1.1.2 (from aiohttp->litellm==1.67.2)
-  Downloading aiosignal-1.3.2-py2.py3-none-any.whl.metadata (3.8 kB)
-Collecting async-timeout<6.0,>=4.0 (from aiohttp->litellm==1.67.2)
-  Downloading async_timeout-5.0.1-py3-none-any.whl.metadata (5.1 kB)
-Collecting frozenlist>=1.1.1 (from aiohttp->litellm==1.67.2)
-  Downloading frozenlist-1.6.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (16 kB)
-Collecting multidict<7.0,>=4.5 (from aiohttp->litellm==1.67.2)
-  Downloading multidict-6.4.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.3 kB)
-Collecting propcache>=0.2.0 (from aiohttp->litellm==1.67.2)
-  Downloading propcache-0.3.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (10 kB)
-Collecting yarl<2.0,>=1.17.0 (from aiohttp->litellm==1.67.2)
-  Downloading yarl-1.20.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (72 kB)
-Collecting huggingface-hub<1.0,>=0.16.4 (from tokenizers->litellm==1.67.2)
-  Downloading huggingface_hub-0.30.2-py3-none-any.whl.metadata (13 kB)
-Collecting filelock (from huggingface-hub<1.0,>=0.16.4->tokenizers->litellm==1.67.2)
-  Downloading filelock-3.18.0-py3-none-any.whl.metadata (2.9 kB)
-Collecting fsspec>=2023.5.0 (from huggingface-hub<1.0,>=0.16.4->tokenizers->litellm==1.67.2)
-  Downloading fsspec-2025.3.2-py3-none-any.whl.metadata (11 kB)
-Requirement already satisfied: packaging>=20.9 in /usr/local/lib/python3.10/dist-packages (from huggingface-hub<1.0,>=0.16.4->tokenizers->litellm==1.67.2) (24.2)
-Requirement already satisfied: pyyaml>=5.1 in /usr/local/lib/python3.10/dist-packages (from huggingface-hub<1.0,>=0.16.4->tokenizers->litellm==1.67.2) (6.0.2)
-Downloading litellm-1.67.2-py3-none-any.whl (7.6 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.6/7.6 MB 91.7 MB/s eta 0:00:00
-Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
-Downloading jsonschema-4.23.0-py3-none-any.whl (88 kB)
-Downloading attrs-25.3.0-py3-none-any.whl (63 kB)
-Downloading importlib_metadata-8.7.0-py3-none-any.whl (27 kB)
-Downloading jsonschema_specifications-2025.4.1-py3-none-any.whl (18 kB)
-Downloading MarkupSafe-3.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (20 kB)
-Downloading referencing-0.36.2-py3-none-any.whl (26 kB)
-Downloading rpds_py-0.24.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (389 kB)
-Downloading zipp-3.21.0-py3-none-any.whl (9.6 kB)
-Downloading aiohttp-3.11.18-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (1.6 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.6/1.6 MB 112.9 MB/s eta 0:00:00
-Downloading async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
-Downloading multidict-6.4.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (219 kB)
-Downloading yarl-1.20.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (333 kB)
-Downloading aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
-Downloading aiosignal-1.3.2-py2.py3-none-any.whl (7.6 kB)
-Downloading frozenlist-1.6.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (287 kB)
-Downloading propcache-0.3.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (206 kB)
-Downloading tokenizers-0.21.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.0 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.0/3.0 MB 120.6 MB/s eta 0:00:00
-Downloading huggingface_hub-0.30.2-py3-none-any.whl (481 kB)
-Downloading fsspec-2025.3.2-py3-none-any.whl (194 kB)
-Downloading filelock-3.18.0-py3-none-any.whl (16 kB)
-Installing collected packages: zipp, rpds-py, propcache, multidict, MarkupSafe, fsspec, frozenlist, filelock, attrs, async-timeout, aiohappyeyeballs, yarl, referencing, jinja2, importlib-metadata, huggingface-hub, aiosignal, tokenizers, jsonschema-specifications, aiohttp, jsonschema, litellm
-  Attempting uninstall: zipp
-    Found existing installation: zipp 1.0.0
-    Uninstalling zipp-1.0.0:
-      Successfully uninstalled zipp-1.0.0
-  Attempting uninstall: importlib-metadata
-    Found existing installation: importlib-metadata 4.6.4
-    Uninstalling importlib-metadata-4.6.4:
-      Successfully uninstalled importlib-metadata-4.6.4
-
-Successfully installed MarkupSafe-3.0.2 aiohappyeyeballs-2.6.1 aiohttp-3.11.18 aiosignal-1.3.2 async-timeout-5.0.1 attrs-25.3.0 filelock-3.18.0 frozenlist-1.6.0 fsspec-2025.3.2 huggingface-hub-0.30.2 importlib-metadata-8.7.0 jinja2-3.1.6 jsonschema-4.23.0 jsonschema-specifications-2025.4.1 litellm-1.67.2 multidict-6.4.3 propcache-0.3.1 referencing-0.36.2 rpds-py-0.24.0 tokenizers-0.21.1 yarl-1.20.0 zipp-3.21.0
-WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  4 1529M    4 63.5M    0     0  50.0M      0  0:00:30  0:00:01  0:00:29 63.6M 22 1529M   22  337M    0     0   148M      0  0:00:10  0:00:02  0:00:08  168M 39 1529M   39  606M    0     0   185M      0  0:00:08  0:00:03  0:00:05  202M 57 1529M   57  879M    0     0   205M      0  0:00:07  0:00:04  0:00:03  219M 74 1529M   74 1140M    0     0   216M      0  0:00:07  0:00:05  0:00:02  228M 91 1529M   91 1401M    0     0   223M      0  0:00:06  0:00:06 --:--:--  267M100 1529M  100 1529M    0     0   227M      0  0:00:06  0:00:06 --:--:--  267M
-2025-04-29 20:10:59 - Installing pre-requisites
-Get:1 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  InRelease [1581 B]
-Get:2 http://security.ubuntu.com/ubuntu jammy-security InRelease [129 kB]
-Get:3 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]
-Get:4 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages [1607 kB]
-Get:5 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]
-Get:6 http://security.ubuntu.com/ubuntu jammy-security/main amd64 Packages [2844 kB]
-Get:7 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [127 kB]
-Get:8 http://archive.ubuntu.com/ubuntu jammy/restricted amd64 Packages [164 kB]
-Get:9 http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages [1792 kB]
-Get:10 http://security.ubuntu.com/ubuntu jammy-security/restricted amd64 Packages [4118 kB]
-Get:11 http://archive.ubuntu.com/ubuntu jammy/multiverse amd64 Packages [266 kB]
-Get:12 http://archive.ubuntu.com/ubuntu jammy/universe amd64 Packages [17.5 MB]
-Get:13 http://security.ubuntu.com/ubuntu jammy-security/universe amd64 Packages [1244 kB]
-Get:14 http://security.ubuntu.com/ubuntu jammy-security/multiverse amd64 Packages [47.7 kB]
-Get:15 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [1543 kB]
-Get:16 http://archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [4272 kB]
-Get:17 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [3155 kB]
-Get:18 http://archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 Packages [55.7 kB]
-Get:19 http://archive.ubuntu.com/ubuntu jammy-backports/universe amd64 Packages [35.2 kB]
-Get:20 http://archive.ubuntu.com/ubuntu jammy-backports/main amd64 Packages [82.7 kB]
-Fetched 39.4 MB in 3s (12.1 MB/s)
-Reading package lists...
-Reading package lists...
-Building dependency tree...
-Reading state information...
-The following additional packages will be installed:
-  dirmngr gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client gpg-wks-server
-  gpgconf gpgsm gpgv libcurl4 libcurl4-openssl-dev
-Suggested packages:
-  dbus-user-session pinentry-gnome3 tor parcimonie xloadimage scdaemon
-  libcurl4-doc libidn11-dev libkrb5-dev libldap2-dev librtmp-dev libssh2-1-dev
-  libssl-dev pkg-config
-The following NEW packages will be installed:
-  apt-transport-https
-The following packages will be upgraded:
-  ca-certificates curl dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent
-  gpg-wks-client gpg-wks-server gpgconf gpgsm gpgv libcurl4
-  libcurl4-openssl-dev
-15 upgraded, 1 newly installed, 0 to remove and 158 not upgraded.
-Need to get 3282 kB of archives.
-After this operation, 184 kB of additional disk space will be used.
-Get:1 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpg-wks-client amd64 2.2.27-3ubuntu2.3 [62.7 kB]
-Get:2 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 dirmngr amd64 2.2.27-3ubuntu2.3 [293 kB]
-Get:3 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpg-wks-server amd64 2.2.27-3ubuntu2.3 [57.6 kB]
-Get:4 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gnupg-utils amd64 2.2.27-3ubuntu2.3 [309 kB]
-Get:5 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpg-agent amd64 2.2.27-3ubuntu2.3 [209 kB]
-Get:6 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpg amd64 2.2.27-3ubuntu2.3 [519 kB]
-Get:7 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpgconf amd64 2.2.27-3ubuntu2.3 [94.4 kB]
-Get:8 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gnupg-l10n all 2.2.27-3ubuntu2.3 [54.6 kB]
-Get:9 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gnupg all 2.2.27-3ubuntu2.3 [315 kB]
-Get:10 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpgsm amd64 2.2.27-3ubuntu2.3 [198 kB]
-Get:11 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 gpgv amd64 2.2.27-3ubuntu2.3 [137 kB]
-Get:12 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 ca-certificates all 20240203~22.04.1 [162 kB]
-Get:13 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 apt-transport-https all 2.4.13 [1510 B]
-Get:14 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libcurl4-openssl-dev amd64 7.81.0-1ubuntu1.20 [386 kB]
-Get:15 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 curl amd64 7.81.0-1ubuntu1.20 [194 kB]
-Get:16 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libcurl4 amd64 7.81.0-1ubuntu1.20 [289 kB]
-Preconfiguring packages ...
-Fetched 3282 kB in 4s (829 kB/s)
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 25246 files and directories currently installed.)
-Preparing to unpack .../00-gpg-wks-client_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking gpg-wks-client (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../01-dirmngr_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking dirmngr (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../02-gpg-wks-server_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking gpg-wks-server (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../03-gnupg-utils_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking gnupg-utils (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../04-gpg-agent_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking gpg-agent (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../05-gpg_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking gpg (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../06-gpgconf_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking gpgconf (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../07-gnupg-l10n_2.2.27-3ubuntu2.3_all.deb ...
-Unpacking gnupg-l10n (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../08-gnupg_2.2.27-3ubuntu2.3_all.deb ...
-Unpacking gnupg (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../09-gpgsm_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking gpgsm (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Preparing to unpack .../10-gpgv_2.2.27-3ubuntu2.3_amd64.deb ...
-Unpacking gpgv (2.2.27-3ubuntu2.3) over (2.2.27-3ubuntu2.1) ...
-Setting up gpgv (2.2.27-3ubuntu2.3) ...
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 25246 files and directories currently installed.)
-Preparing to unpack .../ca-certificates_20240203~22.04.1_all.deb ...
-Unpacking ca-certificates (20240203~22.04.1) over (20230311ubuntu0.22.04.1) ...
-Selecting previously unselected package apt-transport-https.
-Preparing to unpack .../apt-transport-https_2.4.13_all.deb ...
-Unpacking apt-transport-https (2.4.13) ...
-Preparing to unpack .../libcurl4-openssl-dev_7.81.0-1ubuntu1.20_amd64.deb ...
-Unpacking libcurl4-openssl-dev:amd64 (7.81.0-1ubuntu1.20) over (7.81.0-1ubuntu1.10) ...
-Preparing to unpack .../curl_7.81.0-1ubuntu1.20_amd64.deb ...
-Unpacking curl (7.81.0-1ubuntu1.20) over (7.81.0-1ubuntu1.10) ...
-Preparing to unpack .../libcurl4_7.81.0-1ubuntu1.20_amd64.deb ...
-Unpacking libcurl4:amd64 (7.81.0-1ubuntu1.20) over (7.81.0-1ubuntu1.10) ...
-Setting up apt-transport-https (2.4.13) ...
-Setting up ca-certificates (20240203~22.04.1) ...
-Updating certificates in /etc/ssl/certs...
-rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
-14 added, 5 removed; done.
-Setting up gnupg-l10n (2.2.27-3ubuntu2.3) ...
-Setting up gpgconf (2.2.27-3ubuntu2.3) ...
-Setting up libcurl4:amd64 (7.81.0-1ubuntu1.20) ...
-Setting up curl (7.81.0-1ubuntu1.20) ...
-Setting up gpg (2.2.27-3ubuntu2.3) ...
-Setting up gnupg-utils (2.2.27-3ubuntu2.3) ...
-Setting up gpg-agent (2.2.27-3ubuntu2.3) ...
-Setting up gpgsm (2.2.27-3ubuntu2.3) ...
-Setting up dirmngr (2.2.27-3ubuntu2.3) ...
-Setting up libcurl4-openssl-dev:amd64 (7.81.0-1ubuntu1.20) ...
-Setting up gpg-wks-server (2.2.27-3ubuntu2.3) ...
-Setting up gpg-wks-client (2.2.27-3ubuntu2.3) ...
-Setting up gnupg (2.2.27-3ubuntu2.3) ...
-Processing triggers for libc-bin (2.35-0ubuntu3.1) ...
-Processing triggers for ca-certificates (20240203~22.04.1) ...
-Updating certificates in /etc/ssl/certs...
-0 added, 0 removed; done.
-Running hooks in /etc/ca-certificates/update.d...
-done.
-Hit:1 http://security.ubuntu.com/ubuntu jammy-security InRelease
-Hit:2 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  InRelease
-Hit:3 http://archive.ubuntu.com/ubuntu jammy InRelease
-Get:4 https://deb.nodesource.com/node_22.x nodistro InRelease [12.1 kB]
-Hit:5 http://archive.ubuntu.com/ubuntu jammy-updates InRelease
-Hit:6 http://archive.ubuntu.com/ubuntu jammy-backports InRelease
-Get:7 https://deb.nodesource.com/node_22.x nodistro/main amd64 Packages [5381 B]
-Fetched 17.5 kB in 1s (25.2 kB/s)
-Reading package lists...
-2025-04-29 20:11:26 - Repository configured successfully.
-2025-04-29 20:11:26 - To install Node.js, run: apt-get install nodejs -y
-2025-04-29 20:11:26 - You can use N|solid Runtime as a node.js alternative
-2025-04-29 20:11:26 - To install N|solid Runtime, run: apt-get install nsolid -y 
-
-
-WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
-
-Reading package lists...
-Building dependency tree...
-Reading state information...
-The following NEW packages will be installed:
-  nodejs
-0 upgraded, 1 newly installed, 0 to remove and 158 not upgraded.
-Need to get 36.5 MB of archives.
-After this operation, 224 MB of additional disk space will be used.
-Get:1 https://deb.nodesource.com/node_22.x nodistro/main amd64 nodejs amd64 22.15.0-1nodesource1 [36.5 MB]
-Fetched 36.5 MB in 1s (61.3 MB/s)
-Selecting previously unselected package nodejs.
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 25259 files and directories currently installed.)
-Preparing to unpack .../nodejs_22.15.0-1nodesource1_amd64.deb ...
-Unpacking nodejs (22.15.0-1nodesource1) ...
-Setting up nodejs (22.15.0-1nodesource1) ...
- ---> Removed intermediate container d7e2e4d7f7fa
- ---> 63ee5e52c548
-Successfully built 63ee5e52c548
-Successfully tagged inferless-inference:latest
