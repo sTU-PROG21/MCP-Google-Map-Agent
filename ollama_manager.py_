@@ -5,6 +5,7 @@ import json
 import requests
 import signal
 import atexit
+import logging
 from typing import Optional, List, Dict, Any, Union
 
 class OllamaManager:
@@ -15,17 +16,28 @@ class OllamaManager:
     
     def __init__(self, 
                  server_url: str = "http://localhost:11434",
-                 ollama_path: str = "ollama"):
+                 ollama_path: str = "ollama",
+                 log_level: int = logging.INFO):
         """
         Initialize the OllamaManager.
         
         Args:
             server_url: URL where the Ollama server will be accessible
             ollama_path: Path to the ollama executable
+            log_level: Logging level (default: INFO)
         """
         self.server_url = server_url
         self.ollama_path = ollama_path
         self.server_process = None
+        
+        # Setup logging
+        logging.basicConfig(
+            level=log_level,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        self.logger = logging.getLogger("OllamaManager")
+        
+        # Register cleanup function
         atexit.register(self.stop_server)
     
     def start_server(self, wait_for_ready: bool = True, timeout: int = 30) -> None:
@@ -37,11 +49,11 @@ class OllamaManager:
             timeout: Maximum time to wait for server to become ready (in seconds)
         """
         if self.is_server_running():
-            print("Ollama server is already running", flush=True)
+            self.logger.info("Ollama server is already running")
             return
         
         try:
-            print("Starting Ollama server...", flush=True)
+            self.logger.info("Starting Ollama server...")
             # Use DETACHED_PROCESS on Windows to prevent console window
             if os.name == 'nt':
                 self.server_process = subprocess.Popen(
@@ -57,13 +69,13 @@ class OllamaManager:
                     stderr=subprocess.PIPE
                 )
             
-            print(f"Ollama server started with PID {self.server_process.pid}", flush=True)
+            self.logger.info(f"Ollama server started with PID {self.server_process.pid}")
             
             if wait_for_ready:
                 self._wait_for_server(timeout)
         
         except Exception as e:
-            print(f"Failed to start Ollama server: {str(e)}", flush=True)
+            self.logger.error(f"Failed to start Ollama server: {str(e)}")
             raise
     
     def _wait_for_server(self, timeout: int = 30) -> None:
@@ -76,21 +88,20 @@ class OllamaManager:
         Raises:
             TimeoutError: If the server does not respond within the timeout period
         """
-        print(f"Waiting for Ollama server to become ready (timeout: {timeout}s)...", flush=True)
+        self.logger.info(f"Waiting for Ollama server to become ready (timeout: {timeout}s)...")
         start_time = time.time()
         
         while (time.time() - start_time) < timeout:
             try:
-                response = requests.get(f"{self.server_url}/api/tags", timeout=2)
+                response = requests.get(f"{self.server_url}/api/tags")
                 if response.status_code == 200:
-                    print("Ollama server is ready", flush=True)
+                    self.logger.info("Ollama server is ready")
                     return
             except requests.RequestException:
                 pass
             
             time.sleep(1)
         
-        print("Timeout waiting for server to start, attempting to stop", flush=True)
         self.stop_server()
         raise TimeoutError("Ollama server failed to start within the specified timeout")
     
@@ -99,44 +110,25 @@ class OllamaManager:
         Stop the Ollama server if it's running.
         """
         if self.server_process is not None:
-            print(f"Stopping Ollama server (PID {self.server_process.pid})...", flush=True)
+            self.logger.info(f"Stopping Ollama server (PID {self.server_process.pid})...")
             
             try:
                 if os.name == 'nt':
                     # On Windows use taskkill to ensure child processes are terminated
-                    subprocess.run(['taskkill', '/F', '/T', '/PID', str(self.server_process.pid)], 
-                                  timeout=10)
+                    subprocess.run(['taskkill', '/F', '/T', '/PID', str(self.server_process.pid)])
                 else:
                     # On Unix, send SIGTERM
                     self.server_process.terminate()
-                    try:
-                        self.server_process.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        print("Server didn't terminate gracefully, forcing...", flush=True)
-                        self.server_process.kill()
-                        try:
-                            self.server_process.wait(timeout=5)
-                        except subprocess.TimeoutExpired:
-                            print("Server still didn't terminate after kill, using SIGKILL...", flush=True)
-                            os.kill(self.server_process.pid, signal.SIGKILL)
+                    self.server_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.logger.warning("Server didn't terminate gracefully, forcing...")
+                if os.name != 'nt':  # Already forced on Windows
+                    self.server_process.kill()
             except Exception as e:
-                print(f"Error stopping server: {str(e)}", flush=True)
-            
-            # Verify the process has ended
-            try:
-                if self.server_process.poll() is None:
-                    print("Warning: Server process still appears to be running after stop attempt", flush=True)
-            except:
-                pass
+                self.logger.error(f"Error stopping server: {str(e)}")
             
             self.server_process = None
-            
-            # Additional check - wait a moment and see if the port is freed
-            time.sleep(1)
-            if self.is_server_running():
-                print("Warning: Server still responding after stop attempt", flush=True)
-            else:
-                print("Ollama server stopped successfully", flush=True)
+            self.logger.info("Ollama server stopped")
     
     def is_server_running(self) -> bool:
         """
@@ -150,9 +142,10 @@ class OllamaManager:
             return response.status_code == 200
         except requests.RequestException:
             return False
+    
     def download_model(self, model_name: str, show_progress: bool = True) -> bool:
         """
-        Download a model from Ollama with proper encoding handling.
+        Download a model from Ollama.
         
         Args:
             model_name: Name of the model to download
@@ -161,56 +154,55 @@ class OllamaManager:
         Returns:
             True if successful, False otherwise
         """
-        print(f"Downloading model: {model_name}", flush=True)
+        self.logger.info(f"Downloading model: {model_name}")
         
         # Make sure server is running
         server_was_started = False
         if not self.is_server_running():
-            print("Starting server for model download", flush=True)
             self.start_server()
             server_was_started = True
         
         try:
-            print(f"Running ollama pull {model_name}", flush=True)
-            
-            # Use subprocess.run with explicit encoding to handle non-ASCII characters
-            # and capture output safely
-            result = subprocess.run(
-                [self.ollama_path, "pull", model_name],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding='utf-8',  # Explicitly use UTF-8 encoding
-                errors='replace',  # Replace invalid characters instead of failing
-                check=False,
-                timeout=600  # 10 minute timeout for large models
-            )
-            
-            # Print captured output
-            
-            success = result.returncode == 0
+            if show_progress:
+                # Use subprocess with real-time output for better progress visibility
+                process = subprocess.Popen(
+                    [self.ollama_path, "pull", model_name],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=True
+                )
+                
+                for line in iter(process.stdout.readline, ''):
+                    if line.strip():
+                        self.logger.info(line.strip())
+                
+                process.wait()
+                success = process.returncode == 0
+            else:
+                # Silent mode
+                result = subprocess.run(
+                    [self.ollama_path, "pull", model_name],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False
+                )
+                success = result.returncode == 0
             
             if success:
-                print(f"Successfully downloaded model: {model_name}", flush=True)
+                self.logger.info(f"Successfully downloaded model: {model_name}")
             else:
-                print(f"Failed to download model: {model_name} (return code: {result.returncode})", flush=True)
+                self.logger.error(f"Failed to download model: {model_name}")
             
-            # Verify model exists
-            models = self.list_models()
-            print(models,flush=True)
-            model_exists = any(model.get("name") == model_name for model in models)
-            print(f"Model verification: {model_name} exists: {model_exists}", flush=True)
-            
-            return model_exists  # Return based on actual verification, not just process success
+            return success
         
-        except subprocess.TimeoutExpired:
-            print(f"Timeout while downloading model {model_name}. This may indicate network issues or an extremely large model.", flush=True)
-            return False
         except Exception as e:
-            print(f"Error downloading model: {str(e)}", flush=True)
-            import traceback
-            print(f"Stack trace: {traceback.format_exc()}", flush=True)
+            self.logger.error(f"Error downloading model: {str(e)}")
             return False
+        finally:
+            # Stop the server if we started it
+            if server_was_started:
+                self.stop_server()
+    
     def list_models(self) -> List[Dict[str, Any]]:
         """
         List all available models.
@@ -218,33 +210,31 @@ class OllamaManager:
         Returns:
             List of model information dictionaries
         """
-        print("Listing available models...", flush=True)
         server_was_started = False
         if not self.is_server_running():
-            print("Starting server to list models", flush=True)
             self.start_server()
             server_was_started = True
         
         try:
-            response = requests.get(f"{self.server_url}/api/tags", timeout=10)
+            response = requests.get(f"{self.server_url}/api/tags")
             if response.status_code == 200:
-                models = response.json().get('models', [])
-                print(f"Found {len(models)} models", flush=True)
-                return models
+                return response.json().get('models', [])
             else:
-                print(f"Failed to list models: {response.status_code} {response.text}", flush=True)
+                self.logger.error(f"Failed to list models: {response.status_code} {response.text}")
                 return []
         except Exception as e:
-            print(f"Error listing models: {str(e)}", flush=True)
+            self.logger.error(f"Error listing models: {str(e)}")
             return []
+        finally:
+            if server_was_started:
+                self.stop_server()
     
     def generate(self, 
                  model: str, 
                  prompt: str, 
                  system_prompt: Optional[str] = None,
                  stream: bool = False,
-                 options: Optional[Dict[str, Any]] = None,
-                 timeout: int = 120) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+                 options: Optional[Dict[str, Any]] = None) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Generate a response from a model.
         
@@ -254,22 +244,14 @@ class OllamaManager:
             system_prompt: Optional system prompt
             stream: Whether to stream the response
             options: Additional options to pass to the model
-            timeout: Request timeout in seconds
             
         Returns:
             Response from the model (either a single dict or list of response chunks)
         """
-        print(f"Generating response using model: {model}", flush=True)
         server_was_started = False
         if not self.is_server_running():
-            print("Starting server for generation", flush=True)
             self.start_server()
             server_was_started = True
-            # Double check the model exists
-            models = self.list_models()
-            model_exists = any(m["name"] == model for m in models)
-            if not model_exists:
-                print(f"Warning: Model {model} does not appear to be available", flush=True)
         
         try:
             payload = {
@@ -285,32 +267,26 @@ class OllamaManager:
                 payload.update(options)
             
             endpoint = f"{self.server_url}/api/generate"
-            print(f"Sending request to {endpoint}", flush=True)
             
             if stream:
-                print("Streaming response...", flush=True)
                 responses = []
-                with requests.post(endpoint, json=payload, stream=True, timeout=timeout) as response:
+                with requests.post(endpoint, json=payload, stream=True) as response:
                     response.raise_for_status()
                     for line in response.iter_lines():
                         if line:
                             chunk = json.loads(line)
                             responses.append(chunk)
                             if chunk.get('done', False):
-                                print("Streaming complete", flush=True)
                                 break
                 return responses
             else:
-                print("Getting response...", flush=True)
-                response = requests.post(endpoint, json=payload, timeout=timeout)
+                response = requests.post(endpoint, json=payload)
                 response.raise_for_status()
-                print("Response received", flush=True)
                 return response.json()
                 
         except Exception as e:
-            print(f"Error generating response: {str(e)}", flush=True)
+            self.logger.error(f"Error generating response: {str(e)}")
             raise
         finally:
             if server_was_started:
-                print("Stopping server that was started for generation", flush=True)
                 self.stop_server()
