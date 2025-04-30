@@ -37,7 +37,6 @@ class OllamaManager:
         
         try:
             print("Starting Ollama server...", flush=True)
-            # Use DETACHED_PROCESS on Windows to prevent console window
             if os.name == 'nt':
                 self.server_process = subprocess.Popen(
                     [self.ollama_path, "serve"],
@@ -98,11 +97,9 @@ class OllamaManager:
             
             try:
                 if os.name == 'nt':
-                    # On Windows use taskkill to ensure child processes are terminated
                     subprocess.run(['taskkill', '/F', '/T', '/PID', str(self.server_process.pid)], 
                                   timeout=10)
                 else:
-                    # On Unix, send SIGTERM
                     self.server_process.terminate()
                     try:
                         self.server_process.wait(timeout=5)
@@ -175,28 +172,23 @@ class OllamaManager:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                encoding='utf-8',  # Explicitly use UTF-8 encoding
-                errors='replace',  # Replace invalid characters instead of failing
+                encoding='utf-8',
+                errors='replace',
                 check=False,
-                timeout=600  # 10 minute timeout for large models
+                timeout=600
             )
-            
-            # Print captured output
-            
             success = result.returncode == 0
-            
             if success:
                 print(f"Successfully downloaded model: {model_name}", flush=True)
             else:
                 print(f"Failed to download model: {model_name} (return code: {result.returncode})", flush=True)
             
-            # Verify model exists
             models = self.list_models()
             print(models,flush=True)
             model_exists = any(model.get("name") == model_name for model in models)
             print(f"Model verification: {model_name} exists: {model_exists}", flush=True)
             
-            return model_exists  # Return based on actual verification, not just process success
+            return model_exists
         
         except subprocess.TimeoutExpired:
             print(f"Timeout while downloading model {model_name}. This may indicate network issues or an extremely large model.", flush=True)
