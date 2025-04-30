@@ -3,7 +3,10 @@
 > 1. **Connect** securely to the Google Maps MCP endpoint.  
 > 2. **Retrieve** location data on-demand without managing any servers.  
 > 3. **Summarize** the results with a LLM to deliver concise, human-readable insights.
- 
+
+## Architecture
+![MCP-Google-Maps](https://github.com/user-attachments/assets/0945de35-53b1-4caf-ba1d-c3667aba7cd4)
+
 ---
 ## Prerequisites
 - **Git**. You would need git installed on your system if you wish to customize the repo after forking.
