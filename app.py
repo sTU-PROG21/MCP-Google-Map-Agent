@@ -129,3 +129,6 @@ class InferlessPythonModel:
             HumanMessage(content=prompt)
         ]
         return final_prompt
+    
+    def finalize(self):
+        pass
