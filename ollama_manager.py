@@ -8,51 +8,25 @@ import atexit
 from typing import Optional, List, Dict, Any, Union
 
 class OllamaManager:
-    def __init__(self, 
-                 server_url: str = "http://localhost:11434",
-                 ollama_path: str = "ollama"):
-        """
-        Initialize the OllamaManager.
-        
-        Args:
-            server_url: URL where the Ollama server will be accessible
-            ollama_path: Path to the ollama executable
-        """
+    def __init__(self, server_url: str = "http://localhost:11434",ollama_path: str = "ollama"):
         self.server_url = server_url
         self.ollama_path = ollama_path
         self.server_process = None
         atexit.register(self.stop_server)
     
     def start_server(self, wait_for_ready: bool = True, timeout: int = 30) -> None:
-        """
-        Start the Ollama server in the background.
-        
-        Args:
-            wait_for_ready: Whether to wait until the server is responding
-            timeout: Maximum time to wait for server to become ready (in seconds)
-        """
         if self.is_server_running():
             print("Ollama server is already running", flush=True)
             return
-        
         try:
             print("Starting Ollama server...", flush=True)
-            if os.name == 'nt':
-                self.server_process = subprocess.Popen(
-                    [self.ollama_path, "serve"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    creationflags=subprocess.DETACHED_PROCESS
-                )
-            else:
-                self.server_process = subprocess.Popen(
-                    [self.ollama_path, "serve"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
             
+            self.server_process = subprocess.Popen(
+                [self.ollama_path, "serve"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
             print(f"Ollama server started with PID {self.server_process.pid}", flush=True)
-            
             if wait_for_ready:
                 self._wait_for_server(timeout)
         
@@ -61,18 +35,8 @@ class OllamaManager:
             raise
     
     def _wait_for_server(self, timeout: int = 30) -> None:
-        """
-        Wait for the server to become responsive.
-        
-        Args:
-            timeout: Maximum time to wait (in seconds)
-        
-        Raises:
-            TimeoutError: If the server does not respond within the timeout period
-        """
         print(f"Waiting for Ollama server to become ready (timeout: {timeout}s)...", flush=True)
         start_time = time.time()
-        
         while (time.time() - start_time) < timeout:
             try:
                 response = requests.get(f"{self.server_url}/api/tags", timeout=2)
@@ -89,32 +53,23 @@ class OllamaManager:
         raise TimeoutError("Ollama server failed to start within the specified timeout")
     
     def stop_server(self) -> None:
-        """
-        Stop the Ollama server if it's running.
-        """
         if self.server_process is not None:
             print(f"Stopping Ollama server (PID {self.server_process.pid})...", flush=True)
-            
             try:
-                if os.name == 'nt':
-                    subprocess.run(['taskkill', '/F', '/T', '/PID', str(self.server_process.pid)], 
-                                  timeout=10)
-                else:
-                    self.server_process.terminate()
+                self.server_process.terminate()
+                try:
+                    self.server_process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    print("Server didn't terminate gracefully, forcing...", flush=True)
+                    self.server_process.kill()
                     try:
                         self.server_process.wait(timeout=5)
                     except subprocess.TimeoutExpired:
-                        print("Server didn't terminate gracefully, forcing...", flush=True)
-                        self.server_process.kill()
-                        try:
-                            self.server_process.wait(timeout=5)
-                        except subprocess.TimeoutExpired:
-                            print("Server still didn't terminate after kill, using SIGKILL...", flush=True)
-                            os.kill(self.server_process.pid, signal.SIGKILL)
+                        print("Server still didn't terminate after kill, using SIGKILL...", flush=True)
+                        os.kill(self.server_process.pid, signal.SIGKILL)
             except Exception as e:
                 print(f"Error stopping server: {str(e)}", flush=True)
             
-            # Verify the process has ended
             try:
                 if self.server_process.poll() is None:
                     print("Warning: Server process still appears to be running after stop attempt", flush=True)
@@ -123,7 +78,6 @@ class OllamaManager:
             
             self.server_process = None
             
-            # Additional check - wait a moment and see if the port is freed
             time.sleep(1)
             if self.is_server_running():
                 print("Warning: Server still responding after stop attempt", flush=True)
@@ -131,31 +85,14 @@ class OllamaManager:
                 print("Ollama server stopped successfully", flush=True)
     
     def is_server_running(self) -> bool:
-        """
-        Check if the Ollama server is running and responsive.
-        
-        Returns:
-            True if the server is running and responding, False otherwise
-        """
         try:
             response = requests.get(f"{self.server_url}/api/tags", timeout=2)
             return response.status_code == 200
         except requests.RequestException:
             return False
-    def download_model(self, model_name: str, show_progress: bool = True) -> bool:
-        """
-        Download a model from Ollama with proper encoding handling.
-        
-        Args:
-            model_name: Name of the model to download
-            show_progress: Whether to show download progress
             
-        Returns:
-            True if successful, False otherwise
-        """
+    def download_model(self, model_name: str, show_progress: bool = True) -> bool:
         print(f"Downloading model: {model_name}", flush=True)
-        
-        # Make sure server is running
         server_was_started = False
         if not self.is_server_running():
             print("Starting server for model download", flush=True)
@@ -164,9 +101,6 @@ class OllamaManager:
         
         try:
             print(f"Running ollama pull {model_name}", flush=True)
-            
-            # Use subprocess.run with explicit encoding to handle non-ASCII characters
-            # and capture output safely
             result = subprocess.run(
                 [self.ollama_path, "pull", model_name],
                 stdout=subprocess.PIPE,
@@ -198,13 +132,8 @@ class OllamaManager:
             import traceback
             print(f"Stack trace: {traceback.format_exc()}", flush=True)
             return False
+            
     def list_models(self) -> List[Dict[str, Any]]:
-        """
-        List all available models.
-        
-        Returns:
-            List of model information dictionaries
-        """
         print("Listing available models...", flush=True)
         server_was_started = False
         if not self.is_server_running():
