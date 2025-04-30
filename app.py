@@ -48,7 +48,7 @@ class InferlessPythonModel:
         self.maps_server = StdioServerParameters(
                                             command="npx",
                                             args=["-y", "@modelcontextprotocol/server-google-maps"],
-                                            env={"GOOGLE_MAPS_API_KEY": "AIzaSyDrTJNscmxw8dmQFujczCKH0XBfyCRAvBE"}
+                                            env={"GOOGLE_MAPS_API_KEY": os.getenv("GOOGLE_MAPS_API_KEY")}
                                         )
 
     def infer(self, request: RequestObjects) -> ResponseObjects:
