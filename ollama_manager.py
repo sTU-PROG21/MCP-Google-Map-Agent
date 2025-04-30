@@ -8,11 +8,6 @@ import atexit
 from typing import Optional, List, Dict, Any, Union
 
 class OllamaManager:
-    """
-    A class to manage Ollama models and server operations.
-    Handles downloading models and running the Ollama server in the background.
-    """
-    
     def __init__(self, 
                  server_url: str = "http://localhost:11434",
                  ollama_path: str = "ollama"):
