@@ -58,7 +58,6 @@ class InferlessPythonModel:
         prompt = self.get_prompt(places_data)
         response = self.llm.invoke(prompt)
 
-        return {"result":}
         generateObject = ResponseObjects(generated_result=response.content)
         return generateObject
     
