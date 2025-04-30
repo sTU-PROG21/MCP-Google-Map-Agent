@@ -1,0 +1,16 @@
+build:
+  cuda_version: "12.1.1"
+  python_packages:
+    - "langchain-mcp-adapters==0.0.9"
+    - "mcp==1.6.0"
+    - "requests==2.32.3"
+    - "langchain-openai==0.3.14"
+    - "langgraph==0.3.34"
+    - "inferless==0.2.13"
+    - "pydantic==2.10.2"
+    - "litellm==1.67.2"
+  run:
+    - "curl -L https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz"
+    - "tar -C /usr -xzf ollama-linux-amd64.tgz"
+    - "curl -sL https://deb.nodesource.com/setup_lts.x | bash -"
+    - "apt install nodejs -y"
