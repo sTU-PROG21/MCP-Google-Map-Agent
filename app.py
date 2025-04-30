@@ -8,7 +8,18 @@ from mcp.client.stdio import stdio_client
 from mcp import ClientSession, StdioServerParameters
 from langchain_core.messages import SystemMessage, HumanMessage
 from ollama_manager import OllamaManager
+import inferless
+from pydantic import BaseModel, Field
+from typing import Optional
 
+
+@inferless.request
+class RequestObjects(BaseModel):
+    user_query: str = Field(default="Can you find me Tea shop in HSR Layout Bangalore with good number of reviews?")
+
+@inferless.response
+class ResponseObjects(BaseModel):
+    generated_result: str = Field(default="Test output")
 
 class InferlessPythonModel:
     def initialize(self):
@@ -40,14 +51,16 @@ class InferlessPythonModel:
                                             env={"GOOGLE_MAPS_API_KEY": "AIzaSyDrTJNscmxw8dmQFujczCKH0XBfyCRAvBE"}
                                         )
 
-    def infer(self,inputs):
-        user_query = inputs["user_query"]
+    def infer(self, request: RequestObjects) -> ResponseObjects:
+        user_query = request.user_query
         raw_results = self.query_google_maps(user_query)
         places_data = self.extract_places_data(raw_results)
         prompt = self.get_prompt(places_data)
         response = self.llm.invoke(prompt)
 
-        return {"result":response.content}
+        return {"result":}
+        generateObject = ResponseObjects(generated_result=response.content)
+        return generateObject
     
     def query_google_maps(self,question: str):
         async def _inner():
@@ -78,70 +91,42 @@ class InferlessPythonModel:
         )
         
         prompt =     f"""
-    You are a helpful Google Maps assistant. Format these search results into a concise, user-friendly response:
-    {places_data}
-
-    Follow EXACTLY this format and style, with no deviations:
-
-    What I found:
-    [One sentence stating total number of relevant places found]
-
-    Places by Rating:
-    - **Top Picks (4.5+ stars)**:
-    - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
-    - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
-    - **Good Options (4.0-4.4 stars)**:
-    - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
-    - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
-    - **Other Notable Places**:
-    - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
-
-    My recommendation:
-    [1-2 sentences identifying your top suggestion and brief reasoning]
-
-    _Need more details or directions? Just ask!_
-
-    IMPORTANT RULES:
-    1. Total response must be under 120 words
-    2. Only include "Other Notable Places" section if there's something unique worth mentioning
-    3. Simplify addresses to just street name or neighborhood
-    4. Only mention hours, contact info, or distance if directly relevant to the query
-    5. Omit any place that doesn't offer relevant value to the user
-    6. Never include technical syntax, code blocks, or raw data
-    7. Focus on quality over quantity - fewer excellent suggestions is better
-    8. Format must match the example exactly
-        """
-        prompt_ = f"""
-        Format these Google Maps search results into a helpful, user-friendly response.
-
-        Follow every guideline exactly:
-
-        1. **Start** with a one-sentence intro mentioning the total number of places.
-        2. **Group** them by rating:
-                - **Excellent** (4.5 - 5.0)  
-                - **Very good** (4.0 - 4.4)  
-                - **Good** (below 4.0)
-        3. For each place give: **bold name**, rating, short address, and 1-2 notable features.
-        4. Finish with a brief conclusion naming your top 1-2 picks.
-        5. Use clear markdown headers and bullet points,no tables.
-        6. Keep it tight (150-180 words total).
-        7. End with:  
-        `_Need directions or anything else? Just let me know!_`
-
-        **Never** output code, back-ticks, or anything that looks like a script.
-
-        Search results:
+        You are a helpful Google Maps assistant. Format these search results into a concise, user-friendly response:
         {places_data}
+    
+        Follow EXACTLY this format and style, with no deviations:
+    
+        What I found:
+        [One sentence stating total number of relevant places found]
+    
+        Places by Rating:
+        - **Top Picks (4.5+ stars)**:
+        - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
+        - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
+        - **Good Options (4.0-4.4 stars)**:
+        - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
+        - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
+        - **Other Notable Places**:
+        - **[Place Name]** - [Rating]/5 - [Simple location] - [1-2 key features]
+    
+        My recommendation:
+        [1-2 sentences identifying your top suggestion and brief reasoning]
+    
+        _Need more details or directions? Just ask!_
+    
+        IMPORTANT RULES:
+        1. Total response must be under 120 words
+        2. Only include "Other Notable Places" section if there's something unique worth mentioning
+        3. Simplify addresses to just street name or neighborhood
+        4. Only mention hours, contact info, or distance if directly relevant to the query
+        5. Omit any place that doesn't offer relevant value to the user
+        6. Never include technical syntax, code blocks, or raw data
+        7. Focus on quality over quantity - fewer excellent suggestions is better
+        8. Format must match the example exactly
         """
 
         final_prompt = [
             SystemMessage(content=SYSTEM_PROMPT),
             HumanMessage(content=prompt)
         ]
-        print("PROMPT HERE") 
         return final_prompt
-    
-
-#obj = InferlessPythonModel()
-#obj.initialize()
-#print(obj.infer({"user_query":"Can you find me some Pizza shop in Jorhat Gar ali with good number of reviews?"}))
