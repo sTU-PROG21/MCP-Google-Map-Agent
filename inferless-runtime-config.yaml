@@ -6,6 +6,8 @@ build:
     - "requests==2.32.3"
     - "langchain-openai==0.3.14"
     - "langgraph==0.3.34"
+    - "inferless==0.2.13"
+    - "pydantic==2.10.2"
   run:
     - "pip install litellm==1.67.2"
     - "curl -L https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz"
