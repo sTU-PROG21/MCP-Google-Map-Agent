@@ -11,6 +11,10 @@ from ollama_manager import OllamaManager
 import inferless
 from pydantic import BaseModel, Field
 from typing import Optional
+from mock_data import get_mock_places
+
+# Demo mode - set to False when you have real API keys
+DEMO_MODE = False  # Switching to real Google Maps API!
 
 
 @inferless.request
@@ -29,7 +33,7 @@ class InferlessPythonModel:
         
         print(f"Available models: {models}")
 
-        model_id = "mistral-small:24b-instruct-2501-q4_K_M"
+        model_id = "llama3.2:3b"
         if not any(model['name'] == model_id for model in models):
             manager.download_model(model_id)
 
@@ -45,11 +49,14 @@ class InferlessPythonModel:
                     }
                 )
         
-        self.maps_server = StdioServerParameters(
-                                            command="npx",
-                                            args=["-y", "@modelcontextprotocol/server-google-maps"],
-                                            env={"GOOGLE_MAPS_API_KEY": os.getenv("GOOGLE_MAPS_API_KEY")}
-                                        )
+        if not DEMO_MODE:
+            self.maps_server = StdioServerParameters(
+                                                command="npx",
+                                                args=["-y", "@modelcontextprotocol/server-google-maps"],
+                                                env={"GOOGLE_MAPS_API_KEY": os.getenv("GOOGLE_MAPS_API_KEY")}
+                                            )
+        else:
+            print("🔥 DEMO MODE: Skipping MCP server setup")
 
     def infer(self, request: RequestObjects) -> ResponseObjects:
         user_query = request.user_query
@@ -61,15 +68,30 @@ class InferlessPythonModel:
         generateObject = ResponseObjects(generated_result=response.content)
         return generateObject
     
-    def query_google_maps(self,question: str):
-        async def _inner():
-            async with stdio_client(self.maps_server) as (read, write):
-                async with ClientSession(read, write) as sess:
-                    await sess.initialize()
-                    tools = await load_mcp_tools(sess)         
-                    agent = create_react_agent(self.llm, tools)     
-                    return await agent.ainvoke({"messages": question})
-        return anyio.run(_inner)
+    def query_google_maps(self, question: str):
+        if DEMO_MODE:
+            # Use mock data for testing
+            print(f"🔥 DEMO MODE: Processing query '{question}'")
+            mock_places = get_mock_places(question)
+            
+            # Create a mock response that matches the expected structure
+            class MockMessage:
+                def __init__(self, content):
+                    self.content = str(mock_places)
+                    self.tool_call_id = "mock_call"
+            
+            return {"messages": [MockMessage(mock_places)]}
+        
+        else:
+            # Real Google Maps MCP integration
+            async def _inner():
+                async with stdio_client(self.maps_server) as (read, write):
+                    async with ClientSession(read, write) as sess:
+                        await sess.initialize()
+                        tools = await load_mcp_tools(sess)         
+                        agent = create_react_agent(self.llm, tools)     
+                        return await agent.ainvoke({"messages": question})
+            return anyio.run(_inner)
     
     def extract_places_data(self, response):
         for message in response["messages"]:

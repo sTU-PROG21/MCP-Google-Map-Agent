@@ -1,73 +1,174 @@
-# Cookbook: MCP-Google-Map-Agent
- **In this step-by-step tutorial, you’ll build a fully serverless AI agent that taps into Google Maps through the MCP platform. You’ll learn how to:**
-> 1. **Connect** securely to the Google Maps MCP endpoint.  
-> 2. **Retrieve** location data on-demand without managing any servers.  
-> 3. **Summarize** the results with a LLM to deliver concise, human-readable insights.
+# Google Maps Agent with MCP & Ollama
 
-## Architecture
-![MCP-Google-Maps](https://github.com/user-attachments/assets/0945de35-53b1-4caf-ba1d-c3667aba7cd4)
+A conversational AI agent that provides intelligent Google Maps search results using the Model Context Protocol (MCP), Ollama, and LangChain.
 
----
-## Prerequisites
-- **Git**. You would need git installed on your system if you wish to customize the repo after forking.
-- **Python>=3.8**. You would need Python to customize the code in the app.py according to your needs.
-- **Curl**. You would need Curl if you want to make API calls from the terminal itself.
+## 🚀 What it does
 
----
-## Quick Start
-Here is a quick start to help you get up and running with this template on Inferless.
+Ask natural language questions about places and get concise, well-formatted responses with ratings, locations, and recommendations.
 
-### Fork the Repository
-Get started by forking the repository. You can do this by clicking on the fork button in the top right corner of the repository page.
+**Example:**
+- **You ask:** "Find me tea shops in HSR Layout Bangalore with good reviews"
+- **Agent responds:** Organized list of top-rated tea shops with ratings, locations, and recommendations
 
-This will create a copy of the repository in your own GitHub account, allowing you to make changes and customize it according to your needs.
+## 🏗️ Architecture
 
-### Create a Custom Runtime in Inferless
-To access the custom runtime window in Inferless, simply navigate to the sidebar and click on the Create new Runtime button. A pop-up will appear.
+- **Ollama**: Local LLM server running Mistral-Small model
+- **MCP Google Maps**: Standardized interface to Google Maps API
+- **LangChain**: Agent orchestration and tool integration
+- **Python**: Main application logic
+- **Node.js**: Powers the MCP Google Maps server
 
-Next, provide a suitable name for your custom runtime and proceed by uploading the **inferless-runtime-config.yaml** file given above. Finally, ensure you save your changes by clicking on the save button.
+## 📋 Prerequisites
 
-### Import the Model in Inferless
-Log in to your inferless account, select the workspace you want the model to be imported into and click the `Deploy a Model` button.
+- **Python 3.12+**
+- **Node.js 18+** 
+- **Ollama** installed and running
+- **Google Maps API Key**
 
-- Select `Github` as the method of upload from the Provider list and then select your Github Repository and the branch.
-- Choose the type of machine, and specify the minimum and maximum number of replicas for deploying your model.
-- Configure Custom Runtime ( If you have pip or apt packages), choose Volume, Secrets and set Environment variables like Inference Timeout / Container Concurrency / Scale Down Timeout
-- Once you click “Continue,” click Deploy to start the model import process.
+## 🛠️ Setup Instructions
 
-Enter all the required details to Import your model. Refer [this link](https://docs.inferless.com/integrations/git-custom-code/git--custom-code) for more information on model import.
+### 1. Clone and Setup Environment
 
----
-## Curl Command
-Following is an example of the curl command you can use to make inference. You can find the exact curl command in the Model's API page in Inferless.
 ```bash
-curl --location '<your_inference_url>' \
-          --header 'Content-Type: application/json' \
-          --header 'Authorization: Bearer <your_api_key>' \
-          --data '{
-                  "inputs": [
-                              {
-                                  "name": "user_query",
-                                  "shape": [
-                                      1
-                                  ],
-                                  "data": [
-                                      "Can you find me some Pizza shop in Jorhat Gar ali with good number of reviews?"
-                                  ],
-                                  "datatype": "BYTES"
-                              }
-                          ]  
-                }
-            '
+git clone https://github.com/YOUR_USERNAME/MCP-Google-Map-Agent.git
+cd MCP-Google-Map-Agent
+
+# Create Python virtual environment
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# Mac/Linux  
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
+
+### 2. Install Ollama
+
+**Windows:**
+- Download installer from https://ollama.com/download/windows
+- Run installer and add to PATH
+
+**Mac/Linux:**
+```bash
+curl -L https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz
+tar -C /usr -xzf ollama-linux-amd64.tgz
+```
+
+### 3. Download the AI Model
+
+```bash
+ollama pull mistral-small:24b-instruct-2501-q4_K_M
+```
+
+### 4. Get Google Maps API Key
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create/select a project
+3. Enable "Maps JavaScript API"
+4. Create credentials → API Key
+5. Restrict key to Maps APIs (recommended)
+
+### 5. Set Environment Variable
+
+```bash
+# Windows PowerShell
+$env:GOOGLE_MAPS_API_KEY="your_api_key_here"
+
+# Mac/Linux/Git Bash
+export GOOGLE_MAPS_API_KEY="your_api_key_here"
+```
+
+## 🏃‍♂️ Running the Agent
+
+### Local Testing
+
+```python
+from app import InferlessPythonModel
+
+# Initialize the model
+model = InferlessPythonModel()
+model.initialize()
+
+# Ask a question
+request = RequestObjects(user_query="Find coffee shops near Times Square with good reviews")
+response = model.infer(request)
+print(response.generated_result)
+```
+
+### Deploy to Inferless
+
+```bash
+inferless deploy --gpu A100 --env GOOGLE_MAPS_API_KEY=your_key_here
+```
+
+## 💡 Example Queries
+
+- "Find me pizza places in downtown Seattle with 4+ star ratings"
+- "What are the best-reviewed sushi restaurants in Tokyo?"
+- "Show me gyms near Central Park with good facilities"
+- "Find family-friendly restaurants in Paris with outdoor seating"
+
+## 🔧 Customization
+
+### Modify the Response Format
+
+Edit the `get_prompt()` method in `app.py` to change how results are formatted.
+
+### Change the AI Model
+
+Replace `mistral-small:24b-instruct-2501-q4_K_M` with any Ollama-compatible model:
+
+```bash
+ollama pull llama3.1:8b
+# Update model_id in app.py
+```
+
+### Adjust Search Parameters
+
+Modify the MCP Google Maps integration to filter by specific criteria (price range, distance, etc.)
+
+## 📁 Project Structure
+
+```
+├── app.py                           # Main application logic
+├── ollama_manager.py               # Ollama server management
+├── inferless-runtime-config.yaml  # Deployment configuration
+├── inferless.yaml                 # Inferless settings
+├── requirements.txt               # Python dependencies
+└── README.md                      # This file
+```
+
+## 🎯 Next Steps / TODOs
+
+- [ ] Add support for route planning
+- [ ] Implement place details (hours, contact info)
+- [ ] Add image search for places
+- [ ] Create web interface
+- [ ] Add caching for faster responses
+- [ ] Support multiple languages
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built following the [Inferless MCP Google Maps tutorial](https://docs.inferless.com/cookbook/google-map-agent-using-mcp)
+- Powered by [Ollama](https://ollama.com/) and [MCP](https://modelcontextprotocol.io/)
+- Uses [LangChain](https://langchain.com/) for agent orchestration
+
 ---
-## Customizing the Code
-Open the `app.py` file. This contains the main code for inference. It has three main functions, initialize, infer and finalize.
 
-**Initialize** -  This function is executed during the cold start and is used to initialize the model. If you have any custom configurations or settings that need to be applied during the initialization, make sure to add them in this function.
-
-**Infer** - This function is where the inference happens. The argument to this function `inputs`, is a dictionary containing all the input parameters. The keys are the same as the name given in inputs. Refer to [input](#input) for more.
-
-**Finalize** - This function is used to perform any cleanup activity for example you can unload the model from the gpu.
-
-For more information refer to the [Inferless docs](https://docs.inferless.com/).
+**🚀 Ready to explore the world with AI? Get started by asking about your favorite places!**
